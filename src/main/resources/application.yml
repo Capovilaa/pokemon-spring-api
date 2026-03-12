@@ -1,1 +1,22 @@
-spring.application.name=pokemon-api
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pokemondb
+    username: admin
+    password: admin123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/pokemon
+
+server:
+  port: 8080

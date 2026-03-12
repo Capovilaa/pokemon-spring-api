@@ -5,10 +5,13 @@ import com.pokemon.api.pokemon.infrastructure.web.dto.CreatePokemonRequest;
 import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonResponse;
 import com.pokemon.api.pokemon.infrastructure.web.dto.UpdatePokemonRequest;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
+import com.pokemon.api.shared.infrastructure.security.AuthenticatedUser;
+import com.pokemon.api.shared.infrastructure.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +28,10 @@ public class PokemonController {
     private final DeletePokemonUseCase deletePokemonUseCase;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('TRAINER', 'ADMIN')")
     public ResponseEntity<PokemonResponse> create(@Valid @RequestBody CreatePokemonRequest request) {
-        PokemonResponse response = createPokemonUseCase.execute(request, ExecutionContext.empty());
+        AuthenticatedUser user = SecurityUtils.getAuthenticatedUser();
+        PokemonResponse response = createPokemonUseCase.execute(request, ExecutionContext.of(user));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -43,17 +48,20 @@ public class PokemonController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TRAINER', 'ADMIN')")
     public ResponseEntity<PokemonResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdatePokemonRequest request) {
+        AuthenticatedUser user = SecurityUtils.getAuthenticatedUser();
         PokemonResponse response = updatePokemonUseCase.execute(
                 new UpdatePokemonUseCase.Input(id, request),
-                ExecutionContext.empty()
+                ExecutionContext.of(user)
         );
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TRAINER', 'ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deletePokemonUseCase.execute(id, ExecutionContext.empty());
         return ResponseEntity.noContent().build();

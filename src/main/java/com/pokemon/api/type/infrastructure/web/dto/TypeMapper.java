@@ -1,4 +1,4 @@
-package com.pokemon.api.type.infraestructure.web.dto;
+package com.pokemon.api.type.infrastructure.web.dto;
 
 import com.pokemon.api.type.domain.entity.TypeEntity;
 import org.mapstruct.Mapper;
