@@ -2,6 +2,7 @@ package com.pokemon.api.pokemon.infrastructure.persistence;
 
 import com.pokemon.api.pokemon.domain.entity.Pokemon;
 import com.pokemon.api.pokemon.domain.repository.PokemonRepository;
+import com.pokemon.api.trainer.domain.entity.Trainer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +33,11 @@ public class PokemonRepositoryImpl implements PokemonRepository {
     @Override
     public List<Pokemon> findAll() {
         return springPokemonRepository.findAll();
+    }
+
+    @Override
+    public List<Pokemon> findByTrainer(Trainer trainer) {
+        return springPokemonRepository.findByTrainer(trainer);
     }
 
     @Override

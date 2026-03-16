@@ -1,6 +1,7 @@
 package com.pokemon.api.pokemon.domain.repository;
 
 import com.pokemon.api.pokemon.domain.entity.Pokemon;
+import com.pokemon.api.trainer.domain.entity.Trainer;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,8 @@ public interface PokemonRepository {
     Optional<Pokemon> findByName(String name);
 
     List<Pokemon> findAll();
+
+    List<Pokemon> findByTrainer(Trainer trainer);
 
     void deleteById(Long id);
 
