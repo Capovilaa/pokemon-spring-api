@@ -1,8 +1,5 @@
 package com.pokemon.api.battle.application.usecase;
 
-import com.pokemon.api.achievement.application.usecase.AchievementContext;
-import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
-import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
 import com.pokemon.api.battle.domain.entity.Battle;
 import com.pokemon.api.battle.domain.entity.BattleTurn;
 import com.pokemon.api.battle.domain.repository.BattleRepository;
@@ -13,13 +10,14 @@ import com.pokemon.api.pokemon.domain.entity.Pokemon;
 import com.pokemon.api.pokemon.domain.repository.PokemonRepository;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
+import com.pokemon.api.shared.domain.event.BattleFinishedEvent;
 import com.pokemon.api.shared.domain.exception.NotFoundException;
 import com.pokemon.api.shared.domain.exception.ValidationException;
-import com.pokemon.api.trainer.application.usecase.UpdateTrainerStatsUseCase;
 import com.pokemon.api.trainer.domain.entity.Trainer;
 import com.pokemon.api.trainer.domain.repository.TrainerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,9 +33,7 @@ public class StartBattleUseCase extends BaseUseCase<StartBattleRequest, BattleRe
     private final BattleRepository battleRepository;
     private final PokemonRepository pokemonRepository;
     private final TrainerRepository trainerRepository;
-    private final UpdateTrainerStatsUseCase updateTrainerStatsUseCase;
-    private final CheckAchievementsUseCase checkAchievementsUseCase;
-    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
+    private final ApplicationEventPublisher eventPublisher;
     private final Random random = new Random();
 
     @Override
@@ -135,14 +131,9 @@ public class StartBattleUseCase extends BaseUseCase<StartBattleRequest, BattleRe
                         .build())
                 .toList();
 
-        updateTrainerStatsUseCase.execute(
-                new UpdateTrainerStatsUseCase.Input(winnerTrainer, loserTrainer),
-                context
+        eventPublisher.publishEvent(
+                new BattleFinishedEvent(finalBattle, winnerTrainer, loserTrainer)
         );
-
-        AchievementContext winnerContext = buildAchievementContextUseCase.execute(
-                new BuildAchievementContextUseCase.Input(winnerTrainer, false), context);
-        checkAchievementsUseCase.execute(winnerContext, context);
 
         return BattleResponse.builder()
                 .battleId(finalBattle.getId())

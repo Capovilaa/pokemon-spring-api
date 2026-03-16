@@ -1,8 +1,5 @@
 package com.pokemon.api.pokemon.application.usecase;
 
-import com.pokemon.api.achievement.application.usecase.AchievementContext;
-import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
-import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
 import com.pokemon.api.pokemon.domain.entity.Pokemon;
 import com.pokemon.api.pokemon.domain.repository.PokemonRepository;
 import com.pokemon.api.pokemon.infrastructure.web.dto.CreatePokemonRequest;
@@ -10,6 +7,7 @@ import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonMapper;
 import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonResponse;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
+import com.pokemon.api.shared.domain.event.PokemonCapturedEvent;
 import com.pokemon.api.shared.domain.exception.ValidationException;
 import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import com.pokemon.api.shared.infrastructure.pokeapi.EvolutionService;
@@ -17,12 +15,12 @@ import com.pokemon.api.shared.infrastructure.pokeapi.LegendarySpecies;
 import com.pokemon.api.shared.infrastructure.pokeapi.PokeApiClient;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiPokemonResponse;
 import com.pokemon.api.trainer.application.usecase.FindOrCreateTrainerUseCase;
-import com.pokemon.api.trainer.application.usecase.RegisterPokedexEntryUseCase;
 import com.pokemon.api.trainer.domain.entity.Trainer;
 import com.pokemon.api.type.domain.entity.TypeEntity;
 import com.pokemon.api.type.domain.repository.TypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,9 +37,7 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
     private final FindOrCreateTrainerUseCase findOrCreateTrainerUseCase;
     private final PokeApiClient pokeApiClient;
     private final EvolutionService evolutionService;
-    private final RegisterPokedexEntryUseCase registerPokedexEntryUseCase;
-    private final CheckAchievementsUseCase checkAchievementsUseCase;
-    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -59,7 +55,6 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
                 .collect(Collectors.toSet());
 
         var stats = extractStats(pokeData);
-
         Trainer trainer = findOrCreateTrainerUseCase.execute(null, context);
 
         Pokemon pokemon = Pokemon.builder()
@@ -79,11 +74,9 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
 
         Pokemon saved = pokemonRepository.save(pokemon);
 
+
         boolean isLegendary = LegendarySpecies.isLegendary(saved.getSpeciesId());
-        AchievementContext achievementContext = buildAchievementContextUseCase.execute(
-                new BuildAchievementContextUseCase.Input(trainer, isLegendary), context);
-        checkAchievementsUseCase.execute(achievementContext, context);
-        registerPokedexEntryUseCase.execute(saved, context);
+        eventPublisher.publishEvent(new PokemonCapturedEvent(saved, trainer, isLegendary));
 
         String nextEvolution = evolutionService
                 .getNextEvolution(saved.getName())
@@ -95,16 +88,12 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
     private TypeEntity findOrCreateType(String typeName) {
         return typeRepository.findByName(typeName)
                 .orElseGet(() -> typeRepository.save(
-                        TypeEntity.builder()
-                                .name(typeName)
-                                .build()
+                        TypeEntity.builder().name(typeName).build()
                 ));
     }
 
     private String capitalize(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
+        if (name == null || name.isEmpty()) return name;
         return Character.toUpperCase(name.charAt(0)) + name.substring(1).toLowerCase();
     }
 
@@ -123,9 +112,7 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
         return new Stats(hp, attack, defense, spAtk, spDef, speed);
     }
 
-    private record Stats(
-            int hp, int attack, int defense,
-            int specialAttack, int specialDefense, int speed
-    ) {
+    private record Stats(int hp, int attack, int defense,
+                         int specialAttack, int specialDefense, int speed) {
     }
 }
