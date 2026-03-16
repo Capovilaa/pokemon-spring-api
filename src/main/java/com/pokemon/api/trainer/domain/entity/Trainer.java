@@ -53,4 +53,8 @@ public class Trainer {
     @Column(name = "total_battles", nullable = false)
     @Builder.Default
     private Integer totalBattles = 0;
+
+    @Column(name = "total_evolutions", nullable = false)
+    @Builder.Default
+    private Integer totalEvolutions = 0;
 }

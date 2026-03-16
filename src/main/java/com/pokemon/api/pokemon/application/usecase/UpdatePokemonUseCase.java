@@ -1,5 +1,8 @@
 package com.pokemon.api.pokemon.application.usecase;
 
+import com.pokemon.api.achievement.application.usecase.AchievementContext;
+import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
+import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
 import com.pokemon.api.pokemon.domain.entity.Pokemon;
 import com.pokemon.api.pokemon.domain.repository.PokemonRepository;
 import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonMapper;
@@ -14,6 +17,8 @@ import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import com.pokemon.api.shared.infrastructure.pokeapi.EvolutionService;
 import com.pokemon.api.shared.infrastructure.pokeapi.PokeApiClient;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiPokemonResponse;
+import com.pokemon.api.trainer.domain.entity.Trainer;
+import com.pokemon.api.trainer.domain.repository.TrainerRepository;
 import com.pokemon.api.type.domain.entity.TypeEntity;
 import com.pokemon.api.type.domain.repository.TypeRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +41,9 @@ public class UpdatePokemonUseCase extends BaseUseCase<UpdatePokemonUseCase.Input
     private final PokemonMapper pokemonMapper;
     private final EvolutionService evolutionService;
     private final PokeApiClient pokeApiClient;
+    private final CheckAchievementsUseCase checkAchievementsUseCase;
+    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
+    private final TrainerRepository trainerRepository;
 
     public record Input(Long id, UpdatePokemonRequest request) {
     }
@@ -60,7 +68,6 @@ public class UpdatePokemonUseCase extends BaseUseCase<UpdatePokemonUseCase.Input
 
         pokemon.setLevel(input.request().level());
 
-        // Verifica evolução automática
         String evolutionName = evolutionService
                 .getEvolution(pokemon.getName(), input.request().level())
                 .orElse(null);
@@ -68,8 +75,14 @@ public class UpdatePokemonUseCase extends BaseUseCase<UpdatePokemonUseCase.Input
         if (evolutionName != null) {
             log.info("Pokemon '{}' is evolving to '{}'!", pokemon.getName(), evolutionName);
             applyEvolution(pokemon, evolutionName);
+            Trainer trainer = pokemon.getTrainer();
+            trainer.setTotalEvolutions(trainer.getTotalEvolutions() + 1);
+            trainerRepository.save(trainer);
+
+            AchievementContext achievementContext = buildAchievementContextUseCase.execute(
+                    new BuildAchievementContextUseCase.Input(trainer, false), context);
+            checkAchievementsUseCase.execute(achievementContext, context);
         } else {
-            // Sem evolução — apenas atualiza o level
             boolean nameChanged = !pokemon.getName().equalsIgnoreCase(input.request().name());
             if (nameChanged && pokemonRepository.existsByName(input.request().name())) {
                 throw new ValidationException("Pokemon with name '" + input.request().name() + "' already exists");

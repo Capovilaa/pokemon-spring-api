@@ -1,5 +1,8 @@
 package com.pokemon.api.battle.application.usecase;
 
+import com.pokemon.api.achievement.application.usecase.AchievementContext;
+import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
+import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
 import com.pokemon.api.battle.domain.entity.Battle;
 import com.pokemon.api.battle.domain.entity.BattleTurn;
 import com.pokemon.api.battle.domain.repository.BattleRepository;
@@ -33,6 +36,8 @@ public class StartBattleUseCase extends BaseUseCase<StartBattleRequest, BattleRe
     private final PokemonRepository pokemonRepository;
     private final TrainerRepository trainerRepository;
     private final UpdateTrainerStatsUseCase updateTrainerStatsUseCase;
+    private final CheckAchievementsUseCase checkAchievementsUseCase;
+    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
     private final Random random = new Random();
 
     @Override
@@ -134,6 +139,10 @@ public class StartBattleUseCase extends BaseUseCase<StartBattleRequest, BattleRe
                 new UpdateTrainerStatsUseCase.Input(winnerTrainer, loserTrainer),
                 context
         );
+
+        AchievementContext winnerContext = buildAchievementContextUseCase.execute(
+                new BuildAchievementContextUseCase.Input(winnerTrainer, false), context);
+        checkAchievementsUseCase.execute(winnerContext, context);
 
         return BattleResponse.builder()
                 .battleId(finalBattle.getId())

@@ -1,5 +1,8 @@
 package com.pokemon.api.pokemon.application.usecase;
 
+import com.pokemon.api.achievement.application.usecase.AchievementContext;
+import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
+import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
 import com.pokemon.api.pokemon.domain.entity.Pokemon;
 import com.pokemon.api.pokemon.domain.repository.PokemonRepository;
 import com.pokemon.api.pokemon.infrastructure.web.dto.CreatePokemonRequest;
@@ -10,6 +13,7 @@ import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.exception.ValidationException;
 import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import com.pokemon.api.shared.infrastructure.pokeapi.EvolutionService;
+import com.pokemon.api.shared.infrastructure.pokeapi.LegendarySpecies;
 import com.pokemon.api.shared.infrastructure.pokeapi.PokeApiClient;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiPokemonResponse;
 import com.pokemon.api.trainer.application.usecase.FindOrCreateTrainerUseCase;
@@ -36,6 +40,8 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
     private final PokeApiClient pokeApiClient;
     private final EvolutionService evolutionService;
     private final RegisterPokedexEntryUseCase registerPokedexEntryUseCase;
+    private final CheckAchievementsUseCase checkAchievementsUseCase;
+    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
 
     @Override
     @Transactional
@@ -72,6 +78,11 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
                 .build();
 
         Pokemon saved = pokemonRepository.save(pokemon);
+
+        boolean isLegendary = LegendarySpecies.isLegendary(saved.getSpeciesId());
+        AchievementContext achievementContext = buildAchievementContextUseCase.execute(
+                new BuildAchievementContextUseCase.Input(trainer, isLegendary), context);
+        checkAchievementsUseCase.execute(achievementContext, context);
         registerPokedexEntryUseCase.execute(saved, context);
 
         String nextEvolution = evolutionService
