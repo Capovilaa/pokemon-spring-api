@@ -13,6 +13,7 @@ import com.pokemon.api.shared.infrastructure.pokeapi.EvolutionService;
 import com.pokemon.api.shared.infrastructure.pokeapi.PokeApiClient;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiPokemonResponse;
 import com.pokemon.api.trainer.application.usecase.FindOrCreateTrainerUseCase;
+import com.pokemon.api.trainer.application.usecase.RegisterPokedexEntryUseCase;
 import com.pokemon.api.trainer.domain.entity.Trainer;
 import com.pokemon.api.type.domain.entity.TypeEntity;
 import com.pokemon.api.type.domain.repository.TypeRepository;
@@ -34,6 +35,7 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
     private final FindOrCreateTrainerUseCase findOrCreateTrainerUseCase;
     private final PokeApiClient pokeApiClient;
     private final EvolutionService evolutionService;
+    private final RegisterPokedexEntryUseCase registerPokedexEntryUseCase;
 
     @Override
     @Transactional
@@ -70,6 +72,7 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
                 .build();
 
         Pokemon saved = pokemonRepository.save(pokemon);
+        registerPokedexEntryUseCase.execute(saved, context);
 
         String nextEvolution = evolutionService
                 .getNextEvolution(saved.getName())
