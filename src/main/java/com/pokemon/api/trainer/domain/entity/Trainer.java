@@ -41,4 +41,16 @@ public class Trainer {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    @Column(name = "wins", nullable = false)
+    @Builder.Default
+    private Integer wins = 0;
+
+    @Column(name = "losses", nullable = false)
+    @Builder.Default
+    private Integer losses = 0;
+
+    @Column(name = "total_battles", nullable = false)
+    @Builder.Default
+    private Integer totalBattles = 0;
 }

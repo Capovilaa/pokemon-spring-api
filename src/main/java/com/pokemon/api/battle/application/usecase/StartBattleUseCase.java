@@ -12,6 +12,7 @@ import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.exception.NotFoundException;
 import com.pokemon.api.shared.domain.exception.ValidationException;
+import com.pokemon.api.trainer.application.usecase.UpdateTrainerStatsUseCase;
 import com.pokemon.api.trainer.domain.entity.Trainer;
 import com.pokemon.api.trainer.domain.repository.TrainerRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class StartBattleUseCase extends BaseUseCase<StartBattleRequest, BattleRe
     private final BattleRepository battleRepository;
     private final PokemonRepository pokemonRepository;
     private final TrainerRepository trainerRepository;
+    private final UpdateTrainerStatsUseCase updateTrainerStatsUseCase;
     private final Random random = new Random();
 
     @Override
@@ -127,6 +129,11 @@ public class StartBattleUseCase extends BaseUseCase<StartBattleRequest, BattleRe
                         .defenderHpLeft(t.getDefenderHpLeft())
                         .build())
                 .toList();
+
+        updateTrainerStatsUseCase.execute(
+                new UpdateTrainerStatsUseCase.Input(winnerTrainer, loserTrainer),
+                context
+        );
 
         return BattleResponse.builder()
                 .battleId(finalBattle.getId())
