@@ -8,4 +8,8 @@ public class NotFoundException extends BusinessRuleException {
                 "NOT_FOUND"
         );
     }
+
+    public NotFoundException(String message) {
+        super(message, "NOT_FOUND");
+    }
 }

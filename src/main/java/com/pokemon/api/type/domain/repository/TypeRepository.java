@@ -7,16 +7,15 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface TypeRepository {
+    List<TypeEntity> findAll();
 
-    TypeEntity save(TypeEntity type);
+    Set<TypeEntity> findAllByIdIn(Set<Long> ids);
 
     Optional<TypeEntity> findById(Long id);
 
     Optional<TypeEntity> findByName(String name);
 
-    List<TypeEntity> findAll();
-
-    Set<TypeEntity> findAllByIdIn(Set<Long> ids);
-
     boolean existsByName(String name);
+
+    TypeEntity save(TypeEntity type);
 }

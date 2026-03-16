@@ -5,7 +5,9 @@ import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonMapper;
 import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonResponse;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
+import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,7 @@ public class FindAllPokemonsUseCase extends BaseUseCase<Void, List<PokemonRespon
     private final PokemonMapper pokemonMapper;
 
     @Override
+    @Cacheable(value = CacheConfig.POKEMON_LIST_CACHE, key = "'all'")
     public List<PokemonResponse> execute(Void input, ExecutionContext context) {
         return pokemonRepository.findAll()
                 .stream()

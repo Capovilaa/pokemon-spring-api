@@ -11,12 +11,24 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8180/realms/pokemon
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+
+pokeapi:
+  base-url: https://pokeapi.co/api/v2
+  cache:
+    ttl-hours: 24
 
 server:
   port: 8080

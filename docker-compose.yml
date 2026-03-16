@@ -21,5 +21,11 @@ services:
       - "8180:8080"
     command: start-dev
 
+  redis:
+    image: redis:7
+    container_name: pokemon-redis
+    ports:
+      - "6379:6379"
+
 volumes:
   postgres_data:

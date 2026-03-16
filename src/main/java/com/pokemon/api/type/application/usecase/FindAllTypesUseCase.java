@@ -2,10 +2,12 @@ package com.pokemon.api.type.application.usecase;
 
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
+import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import com.pokemon.api.type.domain.repository.TypeRepository;
 import com.pokemon.api.type.infrastructure.web.dto.TypeMapper;
 import com.pokemon.api.type.infrastructure.web.dto.TypeResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,7 @@ public class FindAllTypesUseCase extends BaseUseCase<Void, List<TypeResponse>> {
     private final TypeMapper typeMapper;
 
     @Override
+    @Cacheable(value = CacheConfig.TYPE_LIST_CACHE, key = "'all'")
     public List<TypeResponse> execute(Void input, ExecutionContext context) {
         return typeRepository.findAll()
                 .stream()

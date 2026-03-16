@@ -13,9 +13,9 @@ import java.util.Set;
 @Table(name = "pokemons")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Pokemon {
 
     @Id
@@ -28,16 +28,39 @@ public class Pokemon {
     @Column(nullable = false)
     private Integer level;
 
+    @Column(name = "species_id")
+    private Integer speciesId;
+
+    @Column(name = "base_hp")
+    private Integer baseHp;
+
+    @Column(name = "base_attack")
+    private Integer baseAttack;
+
+    @Column(name = "base_defense")
+    private Integer baseDefense;
+
+    @Column(name = "base_special_attack")
+    private Integer baseSpecialAttack;
+
+    @Column(name = "base_special_defense")
+    private Integer baseSpecialDefense;
+
+    @Column(name = "base_speed")
+    private Integer baseSpeed;
+
+    @Column(name = "sprite_url")
+    private String spriteUrl;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "pokemon_types",
             joinColumns = @JoinColumn(name = "pokemon_id"),
             inverseJoinColumns = @JoinColumn(name = "type_id")
     )
-    @Builder.Default
-    private Set<TypeEntity> types = new HashSet<>();
+    private Set<TypeEntity> types;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "trainer_id")
     private Trainer trainer;
 
