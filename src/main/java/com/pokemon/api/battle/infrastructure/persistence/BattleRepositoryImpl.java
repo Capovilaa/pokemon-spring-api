@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,5 +23,10 @@ public class BattleRepositoryImpl implements BattleRepository {
     @Override
     public List<Battle> findByTrainer(Trainer trainer) {
         return springBattleRepository.findByTrainer(trainer);
+    }
+
+    @Override
+    public Optional<Battle> findById(Long id) {
+        return springBattleRepository.findById(id);
     }
 }

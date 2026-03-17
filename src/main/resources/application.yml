@@ -29,6 +29,14 @@ spring:
     port: 5672
     username: admin
     password: admin123
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: claude-sonnet-4-6
+          max-tokens: 1024
+          temperature: 0.7
 
 pokeapi:
   base-url: https://pokeapi.co/api/v2
