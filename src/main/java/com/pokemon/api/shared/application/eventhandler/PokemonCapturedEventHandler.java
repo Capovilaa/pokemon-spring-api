@@ -1,12 +1,11 @@
 package com.pokemon.api.shared.application.eventhandler;
 
-import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
-import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
-import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.event.PokemonCapturedEvent;
-import com.pokemon.api.trainer.application.usecase.RegisterPokedexEntryUseCase;
+import com.pokemon.api.shared.infrastructure.messaging.RabbitMQConfig;
+import com.pokemon.api.shared.infrastructure.messaging.dto.PokemonCapturedMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -15,21 +14,26 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PokemonCapturedEventHandler {
 
-    private final RegisterPokedexEntryUseCase registerPokedexEntryUseCase;
-    private final CheckAchievementsUseCase checkAchievementsUseCase;
-    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
+    private final RabbitTemplate rabbitTemplate;
 
     @EventListener
     public void handle(PokemonCapturedEvent event) {
-        log.info("Event received: PokemonCapturedEvent — {} captured by {}",
-                event.pokemon().getName(), event.trainer().getUsername());
+        log.info("Publishing PokemonCapturedEvent to RabbitMQ — {}",
+                event.pokemon().getName());
 
-        registerPokedexEntryUseCase.execute(event.pokemon(), ExecutionContext.empty());
-
-        var context = buildAchievementContextUseCase.execute(
-                new BuildAchievementContextUseCase.Input(event.trainer(), event.isLegendary()),
-                ExecutionContext.empty()
+        var message = new PokemonCapturedMessage(
+                event.pokemon().getId(),
+                event.pokemon().getName(),
+                event.pokemon().getSpeciesId(),
+                event.trainer().getId(),
+                event.trainer().getUsername(),
+                event.isLegendary()
         );
-        checkAchievementsUseCase.execute(context, ExecutionContext.empty());
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE,
+                RabbitMQConfig.POKEMON_CAPTURED_KEY,
+                message
+        );
     }
 }

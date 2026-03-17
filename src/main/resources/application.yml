@@ -24,6 +24,11 @@ spring:
     type: redis
     redis:
       time-to-live: 600000
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin123
 
 pokeapi:
   base-url: https://pokeapi.co/api/v2

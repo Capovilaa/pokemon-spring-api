@@ -1,12 +1,11 @@
 package com.pokemon.api.shared.application.eventhandler;
 
-import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
-import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
-import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.event.PokemonEvolvedEvent;
-import com.pokemon.api.trainer.domain.repository.TrainerRepository;
+import com.pokemon.api.shared.infrastructure.messaging.RabbitMQConfig;
+import com.pokemon.api.shared.infrastructure.messaging.dto.PokemonEvolvedMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -15,23 +14,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PokemonEvolvedEventHandler {
 
-    private final CheckAchievementsUseCase checkAchievementsUseCase;
-    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
-    private final TrainerRepository trainerRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @EventListener
     public void handle(PokemonEvolvedEvent event) {
-        log.info("Event received: PokemonEvolvedEvent — {} evolved from {}",
+        log.info("Publishing PokemonEvolvedEvent to RabbitMQ — {} evolved from {}",
                 event.pokemon().getName(), event.previousName());
 
-        var trainer = event.trainer();
-        trainer.setTotalEvolutions(trainer.getTotalEvolutions() + 1);
-        trainerRepository.save(trainer);
-
-        var context = buildAchievementContextUseCase.execute(
-                new BuildAchievementContextUseCase.Input(trainer, false),
-                ExecutionContext.empty()
+        var message = new PokemonEvolvedMessage(
+                event.pokemon().getId(),
+                event.pokemon().getName(),
+                event.previousName(),
+                event.trainer().getId(),
+                event.trainer().getUsername()
         );
-        checkAchievementsUseCase.execute(context, ExecutionContext.empty());
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE,
+                RabbitMQConfig.POKEMON_EVOLVED_KEY,
+                message
+        );
     }
 }

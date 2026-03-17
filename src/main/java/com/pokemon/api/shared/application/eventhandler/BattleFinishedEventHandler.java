@@ -1,12 +1,11 @@
 package com.pokemon.api.shared.application.eventhandler;
 
-import com.pokemon.api.achievement.application.usecase.BuildAchievementContextUseCase;
-import com.pokemon.api.achievement.application.usecase.CheckAchievementsUseCase;
-import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.event.BattleFinishedEvent;
-import com.pokemon.api.trainer.application.usecase.UpdateTrainerStatsUseCase;
+import com.pokemon.api.shared.infrastructure.messaging.RabbitMQConfig;
+import com.pokemon.api.shared.infrastructure.messaging.dto.BattleFinishedMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -15,24 +14,28 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BattleFinishedEventHandler {
 
-    private final UpdateTrainerStatsUseCase updateTrainerStatsUseCase;
-    private final CheckAchievementsUseCase checkAchievementsUseCase;
-    private final BuildAchievementContextUseCase buildAchievementContextUseCase;
+    private final RabbitTemplate rabbitTemplate;
 
     @EventListener
     public void handle(BattleFinishedEvent event) {
-        log.info("Event received: BattleFinishedEvent — {} defeated {}",
+        log.info("Publishing BattleFinishedEvent to RabbitMQ — {} defeated {}",
                 event.winner().getUsername(), event.loser().getUsername());
 
-        updateTrainerStatsUseCase.execute(
-                new UpdateTrainerStatsUseCase.Input(event.winner(), event.loser()),
-                ExecutionContext.empty()
+        var message = new BattleFinishedMessage(
+                event.battle().getId(),
+                event.winner().getId(),
+                event.winner().getUsername(),
+                event.loser().getId(),
+                event.loser().getUsername(),
+                event.battle().getWinnerPokemon().getName(),
+                event.battle().getDefenderPokemon().getName(),
+                event.battle().getTotalTurns()
         );
 
-        var winnerContext = buildAchievementContextUseCase.execute(
-                new BuildAchievementContextUseCase.Input(event.winner(), false),
-                ExecutionContext.empty()
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE,
+                RabbitMQConfig.BATTLE_FINISHED_KEY,
+                message
         );
-        checkAchievementsUseCase.execute(winnerContext, ExecutionContext.empty());
     }
 }
