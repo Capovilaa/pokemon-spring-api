@@ -6,6 +6,7 @@ import com.pokemon.api.oak.infrastructure.web.dto.OakQuestionRequest;
 import com.pokemon.api.oak.infrastructure.web.dto.OakResponse;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.infrastructure.security.SecurityUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+@Tag(name = "Oak", description = "Talk with professor Oak")
 @RestController
 @RequestMapping("/api/v1/oak")
 @RequiredArgsConstructor
