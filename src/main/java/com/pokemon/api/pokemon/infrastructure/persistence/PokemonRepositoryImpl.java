@@ -26,11 +26,6 @@ public class PokemonRepositoryImpl implements PokemonRepository {
     }
 
     @Override
-    public Optional<Pokemon> findByName(String name) {
-        return springPokemonRepository.findByName(name);
-    }
-
-    @Override
     public List<Pokemon> findAll() {
         return springPokemonRepository.findAll();
     }
@@ -43,10 +38,5 @@ public class PokemonRepositoryImpl implements PokemonRepository {
     @Override
     public void deleteById(Long id) {
         springPokemonRepository.deleteById(id);
-    }
-
-    @Override
-    public boolean existsByName(String name) {
-        return springPokemonRepository.existsByName(name);
     }
 }

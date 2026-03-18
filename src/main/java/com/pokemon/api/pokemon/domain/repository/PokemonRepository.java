@@ -12,13 +12,9 @@ public interface PokemonRepository {
 
     Optional<Pokemon> findById(Long id);
 
-    Optional<Pokemon> findByName(String name);
-
     List<Pokemon> findAll();
 
     List<Pokemon> findByTrainer(Trainer trainer);
 
     void deleteById(Long id);
-
-    boolean existsByName(String name);
 }

@@ -11,7 +11,5 @@ public interface SpringPokemonRepository extends JpaRepository<Pokemon, Long> {
 
     Optional<Pokemon> findByName(String name);
 
-    boolean existsByName(String name);
-
     List<Pokemon> findByTrainer(Trainer trainer);
 }

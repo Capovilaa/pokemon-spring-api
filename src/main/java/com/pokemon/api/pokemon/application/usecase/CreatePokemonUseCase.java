@@ -8,7 +8,6 @@ import com.pokemon.api.pokemon.infrastructure.web.dto.PokemonResponse;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.event.PokemonCapturedEvent;
-import com.pokemon.api.shared.domain.exception.ValidationException;
 import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import com.pokemon.api.shared.infrastructure.pokeapi.EvolutionService;
 import com.pokemon.api.shared.infrastructure.pokeapi.LegendarySpecies;
@@ -45,10 +44,6 @@ public class CreatePokemonUseCase extends BaseUseCase<CreatePokemonRequest, Poke
     public PokemonResponse execute(CreatePokemonRequest input, ExecutionContext context) {
         PokeApiPokemonResponse pokeData = pokeApiClient.fetchPokemon(input.pokemonName());
         String canonicalName = capitalize(pokeData.name());
-
-        if (pokemonRepository.existsByName(canonicalName)) {
-            throw new ValidationException("Pokemon '" + canonicalName + "' already captured");
-        }
 
         Set<TypeEntity> types = pokeData.types().stream()
                 .map(slot -> findOrCreateType(slot.type().name()))

@@ -77,10 +77,6 @@ public class UpdatePokemonUseCase extends BaseUseCase<UpdatePokemonUseCase.Input
                     new PokemonEvolvedEvent(pokemon, pokemon.getTrainer(), previousName)
             );
         } else {
-            boolean nameChanged = !pokemon.getName().equalsIgnoreCase(input.request().name());
-            if (nameChanged && pokemonRepository.existsByName(input.request().name())) {
-                throw new ValidationException("Pokemon with name '" + input.request().name() + "' already exists");
-            }
             pokemon.setName(input.request().name());
         }
 
