@@ -7,7 +7,11 @@ public record BattleTurnResponse(
         Integer turn,
         String attackerPokemon,
         String defenderPokemon,
+        String moveName,
+        String moveType,
         Integer damage,
-        Integer defenderHpLeft
+        Integer defenderHpLeft,
+        Boolean isCritical,
+        String effectiveness
 ) {
 }

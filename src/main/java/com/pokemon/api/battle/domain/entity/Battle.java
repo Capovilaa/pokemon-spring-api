@@ -46,8 +46,20 @@ public class Battle {
     @JoinColumn(name = "winner_pokemon_id")
     private Pokemon winnerPokemon;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private BattleStatus status = BattleStatus.IN_PROGRESS;
+
+    @Column(name = "attacker_current_hp", nullable = false)
+    private Integer attackerCurrentHp;
+
+    @Column(name = "defender_current_hp", nullable = false)
+    private Integer defenderCurrentHp;
+
     @Column(name = "total_turns", nullable = false)
-    private Integer totalTurns;
+    @Builder.Default
+    private Integer totalTurns = 0;
 
     @OneToMany(mappedBy = "battle", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @OrderBy("turnNumber ASC")

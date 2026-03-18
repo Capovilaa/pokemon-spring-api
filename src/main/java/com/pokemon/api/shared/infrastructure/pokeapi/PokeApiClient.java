@@ -3,6 +3,7 @@ package com.pokemon.api.shared.infrastructure.pokeapi;
 import com.pokemon.api.shared.domain.exception.NotFoundException;
 import com.pokemon.api.shared.infrastructure.cache.CacheConfig;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiEvolutionChainResponse;
+import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiMoveResponse;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiPokemonResponse;
 import com.pokemon.api.shared.infrastructure.pokeapi.dto.PokeApiSpeciesResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -57,5 +58,19 @@ public class PokeApiClient {
                 .uri("/evolution-chain/{id}", id)
                 .retrieve()
                 .body(PokeApiEvolutionChainResponse.class);
+    }
+
+    @Cacheable(value = CacheConfig.POKEAPI_CACHE, key = "'move-' + #name.toLowerCase()")
+    public PokeApiMoveResponse fetchMove(String name) {
+        log.info("Fetching move '{}' from PokeAPI", name);
+        try {
+            return restClient.get()
+                    .uri("/move/{name}", name.toLowerCase())
+                    .retrieve()
+                    .body(PokeApiMoveResponse.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            log.warn("Move '{}' not found in PokeAPI", name);
+            return null;
+        }
     }
 }
