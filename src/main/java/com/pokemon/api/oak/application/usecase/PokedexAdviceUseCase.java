@@ -8,8 +8,8 @@ import com.pokemon.api.shared.domain.exception.NotFoundException;
 import com.pokemon.api.trainer.domain.entity.Trainer;
 import com.pokemon.api.trainer.domain.repository.PokedexRepository;
 import com.pokemon.api.trainer.domain.repository.TrainerRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -21,12 +21,20 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PokedexAdviceUseCase extends BaseUseCase<Void, OakResponse> {
 
     private final ChatModel chatModel;
     private final TrainerRepository trainerRepository;
     private final PokedexRepository pokedexRepository;
+
+    public PokedexAdviceUseCase(
+            @Qualifier("anthropicChatModel") ChatModel chatModel,
+            TrainerRepository trainerRepository,
+            PokedexRepository pokedexRepository) {
+        this.chatModel = chatModel;
+        this.trainerRepository = trainerRepository;
+        this.pokedexRepository = pokedexRepository;
+    }
 
     @Override
     public OakResponse execute(Void input, ExecutionContext context) {

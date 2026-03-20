@@ -10,8 +10,8 @@ import com.pokemon.api.oak.infrastructure.web.dto.OakResponse;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.exception.NotFoundException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -26,7 +26,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AskOakUseCase extends BaseUseCase<AskOakUseCase.Input, OakResponse> {
 
     private final ChatModel chatModel;
@@ -35,6 +34,21 @@ public class AskOakUseCase extends BaseUseCase<AskOakUseCase.Input, OakResponse>
     private final GetBattleHistoryTool getBattleHistoryTool;
     private final GetTrainerPokedexTool getTrainerPokedexTool;
     private final GetRankingTool getRankingTool;
+
+    public AskOakUseCase(
+            @Qualifier("anthropicChatModel") ChatModel chatModel,
+            ConversationStore conversationStore,
+            GetTrainerPokemonsTool getTrainerPokemonsTool,
+            GetBattleHistoryTool getBattleHistoryTool,
+            GetTrainerPokedexTool getTrainerPokedexTool,
+            GetRankingTool getRankingTool) {
+        this.chatModel = chatModel;
+        this.conversationStore = conversationStore;
+        this.getTrainerPokemonsTool = getTrainerPokemonsTool;
+        this.getBattleHistoryTool = getBattleHistoryTool;
+        this.getTrainerPokedexTool = getTrainerPokedexTool;
+        this.getRankingTool = getRankingTool;
+    }
 
     public record Input(String question, String conversationId) {
     }

@@ -14,7 +14,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
+
+import java.io.IOException;
 
 @Tag(name = "Oak", description = "Talk with professor Oak")
 @RestController
@@ -27,7 +30,8 @@ public class OakController {
     private final PokedexAdviceUseCase pokedexAdviceUseCase;
     private final CreateConversationUseCase createConversationUseCase;
     private final StreamOakUseCase streamOakUseCase;
-
+    private final IngestPokemonKnowledgeUseCase ingestPokemonKnowledgeUseCase;
+    private final AskOakWithRagUseCase askOakWithRagUseCase;
 
     @PostMapping("/conversations")
     @PreAuthorize("hasAnyRole('TRAINER', 'ADMIN')")
@@ -66,5 +70,20 @@ public class OakController {
         var context = ExecutionContext.of(SecurityUtils.getAuthenticatedUser());
         var input = new AskOakUseCase.Input(request.question(), request.conversationId());
         return streamOakUseCase.execute(input, context);
+    }
+
+    @PostMapping("/knowledge")
+    @PreAuthorize("hasAnyRole('TRAINER', 'ADMIN')")
+    public ResponseEntity<Void> ingestKnowledge(@RequestParam("file") MultipartFile file) throws IOException {
+        var resource = file.getResource();
+        ingestPokemonKnowledgeUseCase.execute(resource, ExecutionContext.empty());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/ask/rag")
+    @PreAuthorize("hasAnyRole('TRAINER', 'ADMIN')")
+    public ResponseEntity<OakResponse> askWithRag(@RequestBody AskOakUseCase.Input input) {
+        var context = ExecutionContext.of(SecurityUtils.getAuthenticatedUser());
+        return ResponseEntity.ok(askOakWithRagUseCase.execute(input.question(), context));
     }
 }

@@ -7,7 +7,6 @@ import com.pokemon.api.oak.infrastructure.ai.tools.GetTrainerPokedexTool;
 import com.pokemon.api.oak.infrastructure.ai.tools.GetTrainerPokemonsTool;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -17,6 +16,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -24,7 +24,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class StreamOakUseCase extends BaseUseCase<AskOakUseCase.Input, Flux<String>> {
 
     private final ChatModel chatModel;
@@ -32,6 +31,19 @@ public class StreamOakUseCase extends BaseUseCase<AskOakUseCase.Input, Flux<Stri
     private final GetBattleHistoryTool getBattleHistoryTool;
     private final GetTrainerPokedexTool getTrainerPokedexTool;
     private final GetRankingTool getRankingTool;
+
+    public StreamOakUseCase(
+            @Qualifier("anthropicChatModel") ChatModel chatModel,
+            GetTrainerPokemonsTool getTrainerPokemonsTool,
+            GetBattleHistoryTool getBattleHistoryTool,
+            GetTrainerPokedexTool getTrainerPokedexTool,
+            GetRankingTool getRankingTool) {
+        this.chatModel = chatModel;
+        this.getTrainerPokemonsTool = getTrainerPokemonsTool;
+        this.getBattleHistoryTool = getBattleHistoryTool;
+        this.getTrainerPokedexTool = getTrainerPokedexTool;
+        this.getRankingTool = getRankingTool;
+    }
 
     @Override
     public Flux<String> execute(AskOakUseCase.Input input, ExecutionContext context) {

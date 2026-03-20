@@ -24,13 +24,15 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     @SuppressWarnings("unchecked")
     private Collection<GrantedAuthority> extractRoles(Jwt jwt) {
-        Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+        Map<String, Object> resourceAccess = jwt.getClaimAsMap("resource_access");
 
-        if (realmAccess == null || !realmAccess.containsKey("roles")) {
-            return List.of();
-        }
+        if (resourceAccess == null) return List.of();
 
-        List<String> roles = (List<String>) realmAccess.get("roles");
+        Map<String, Object> pokemonApi = (Map<String, Object>) resourceAccess.get("pokemon-api");
+
+        if (pokemonApi == null || !pokemonApi.containsKey("roles")) return List.of();
+
+        List<String> roles = (List<String>) pokemonApi.get("roles");
 
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))

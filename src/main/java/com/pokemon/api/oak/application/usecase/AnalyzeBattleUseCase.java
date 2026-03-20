@@ -7,8 +7,8 @@ import com.pokemon.api.oak.infrastructure.web.dto.OakResponse;
 import com.pokemon.api.shared.application.usecase.BaseUseCase;
 import com.pokemon.api.shared.application.usecase.ExecutionContext;
 import com.pokemon.api.shared.domain.exception.NotFoundException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -19,11 +19,17 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AnalyzeBattleUseCase extends BaseUseCase<Long, OakResponse> {
 
     private final ChatModel chatModel;
     private final BattleRepository battleRepository;
+
+    public AnalyzeBattleUseCase(
+            @Qualifier("anthropicChatModel") ChatModel chatModel,
+            BattleRepository battleRepository) {
+        this.chatModel = chatModel;
+        this.battleRepository = battleRepository;
+    }
 
     @Override
     public OakResponse execute(Long battleId, ExecutionContext context) {
