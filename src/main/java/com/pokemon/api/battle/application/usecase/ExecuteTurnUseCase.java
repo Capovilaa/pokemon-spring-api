@@ -17,7 +17,6 @@ import com.pokemon.api.shared.domain.event.BattleFinishedEvent;
 import com.pokemon.api.shared.domain.exception.NotFoundException;
 import com.pokemon.api.shared.domain.exception.ValidationException;
 import com.pokemon.api.shared.infrastructure.pokeapi.MoveService;
-import com.pokemon.api.trainer.application.usecase.UpdateTrainerStatsUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,7 +35,6 @@ public class ExecuteTurnUseCase extends BaseUseCase<ExecuteTurnUseCase.Input, Ba
     private final BattleDamageCalculator damageCalculator;
     private final BattleAiStrategy aiStrategy;
     private final StartBattleUseCase startBattleUseCase;
-    private final UpdateTrainerStatsUseCase updateTrainerStatsUseCase;
     private final ApplicationEventPublisher eventPublisher;
 
     public record Input(Long battleId, ExecuteTurnRequest request) {
@@ -144,11 +142,6 @@ public class ExecuteTurnUseCase extends BaseUseCase<ExecuteTurnUseCase.Input, Ba
             log.info("Battle {} finished! {} won with {} after {} turns",
                     battle.getId(), winner.getUsername(),
                     winnerPokemon.getName(), battle.getTotalTurns());
-
-            updateTrainerStatsUseCase.execute(
-                    new UpdateTrainerStatsUseCase.Input(winner, loser),
-                    ExecutionContext.empty()
-            );
 
             eventPublisher.publishEvent(new BattleFinishedEvent(battle, winner, loser));
         }

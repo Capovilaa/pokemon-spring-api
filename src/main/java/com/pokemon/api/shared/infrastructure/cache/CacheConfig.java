@@ -25,7 +25,7 @@ public class CacheConfig {
     public static final String POKEMON_CACHE = "pokemon";
     public static final String POKEMON_LIST_CACHE = "pokemon-list";
     public static final String TYPE_LIST_CACHE = "type-list";
-    public static final String POKEAPI_CACHE = "pokeapi-pokemon";  // ← adiciona
+    public static final String POKEAPI_CACHE = "pokeapi-pokemon";
 
 
     @Bean
